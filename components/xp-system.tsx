@@ -377,6 +377,7 @@ export function XPSystem() {
             <TabsContent value="ranking">
               <RankingView
                 cursoData={cursos[cursoActivo]}
+                cursoName={cursoActivo}
                 onModifyXP={handleModifyXP}
                 onAddAlumno={handleAddAlumno}
                 onRemoveAlumno={handleRemoveAlumno}

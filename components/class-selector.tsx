@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, ChevronRight, Users, Trash2 } from "lucide-react"
+import { Plus, ChevronRight, Users, Trash2, Link2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -17,6 +17,16 @@ interface ClassSelectorProps {
 
 export function ClassSelector({ cursos, appName, onSelectClass, onCreateClass, onDeleteClass }: ClassSelectorProps) {
   const [nombre, setNombre] = useState("")
+  const [copiedClass, setCopiedClass] = useState<string | null>(null)
+
+  const handleCopyClassLink = (className: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    const url = `${window.location.origin}/alumno/${encodeURIComponent(className)}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedClass(className)
+      setTimeout(() => setCopiedClass(null), 2000)
+    })
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -86,7 +96,24 @@ export function ClassSelector({ cursos, appName, onSelectClass, onCreateClass, o
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="ml-2 text-muted-foreground hover:text-destructive"
+                  className={`ml-2 transition-colors ${
+                    copiedClass === c
+                      ? "text-accent"
+                      : "text-muted-foreground hover:text-primary"
+                  }`}
+                  onClick={(e) => handleCopyClassLink(c, e)}
+                  aria-label={`Copiar link de la clase ${c}`}
+                >
+                  {copiedClass === c ? (
+                    <Check className="size-4" />
+                  ) : (
+                    <Link2 className="size-4" />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive"
                   onClick={(e) => {
                     e.stopPropagation()
                     if (confirm(`Eliminar la clase "${c}"?`)) {

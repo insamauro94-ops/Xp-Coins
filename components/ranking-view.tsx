@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, ChevronUp, ChevronDown, Trophy, Medal, Award, Trash2 } from "lucide-react"
+import { Plus, ChevronUp, ChevronDown, Trophy, Medal, Award, Trash2, Link2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +9,7 @@ import type { CursoData } from "@/lib/xp-types"
 
 interface RankingViewProps {
   cursoData: CursoData
+  cursoName: string
   onModifyXP: (idx: number, value: number) => void
   onAddAlumno: (nombre: string) => void
   onRemoveAlumno: (idx: number) => void
@@ -28,8 +29,17 @@ function getRankBg(rank: number) {
   return "bg-card border-border"
 }
 
-export function RankingView({ cursoData, onModifyXP, onAddAlumno, onRemoveAlumno }: RankingViewProps) {
+export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onRemoveAlumno }: RankingViewProps) {
   const [nuevoAlumno, setNuevoAlumno] = useState("")
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
+
+  const handleCopyLink = (alumnoName: string, originalIdx: number) => {
+    const url = `${window.location.origin}/alumno/${encodeURIComponent(cursoName)}/${encodeURIComponent(alumnoName)}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedIdx(originalIdx)
+      setTimeout(() => setCopiedIdx(null), 2000)
+    })
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,6 +122,23 @@ export function RankingView({ cursoData, onModifyXP, onAddAlumno, onRemoveAlumno
                   aria-label={`Quitar 5 XP a ${al.nombre}`}
                 >
                   <ChevronDown className="size-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={`size-8 transition-colors ${
+                    copiedIdx === al.originalIdx
+                      ? "text-accent"
+                      : "text-muted-foreground hover:bg-primary/15 hover:text-primary"
+                  }`}
+                  onClick={() => handleCopyLink(al.nombre, al.originalIdx)}
+                  aria-label={`Copiar link de ${al.nombre}`}
+                >
+                  {copiedIdx === al.originalIdx ? (
+                    <Check className="size-3.5" />
+                  ) : (
+                    <Link2 className="size-3.5" />
+                  )}
                 </Button>
                 <Button
                   variant="ghost"
