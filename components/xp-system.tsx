@@ -74,6 +74,46 @@ export function XPSystem() {
     }
   }, [cursos, mounted])
 
+  // Save when the user leaves the page (close tab, navigate away, switch tabs, minimize)
+  const cursosRef = useRef(cursos)
+  useEffect(() => {
+    cursosRef.current = cursos
+  }, [cursos])
+
+  useEffect(() => {
+    const saveState = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cursosRef.current))
+      } catch {
+        // ignore storage errors
+      }
+    }
+
+    const handleBeforeUnload = () => {
+      saveState()
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        saveState()
+      }
+    }
+
+    const handlePageHide = () => {
+      saveState()
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    window.addEventListener("pagehide", handlePageHide)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("pagehide", handlePageHide)
+    }
+  }, [])
+
   // Auction timer
   useEffect(() => {
     if (subasta.activa && timeLeft > 0) {
