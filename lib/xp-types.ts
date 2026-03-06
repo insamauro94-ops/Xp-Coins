@@ -1,9 +1,15 @@
-export type CursoData = {
-  id: string
-  name: string
+export interface Alumno {
+  nombre: string
+  xp: number
 }
 
-export type SubastaState = {
-  id: string
-  activa: boolean
+export interface CursoData {
+  alumnos: Alumno[]
+}
+
+export interface SubastaState {
+  item: string
+  incremento: number
+  pujaActual: number
+  ganadorIdx: number | null
 }
