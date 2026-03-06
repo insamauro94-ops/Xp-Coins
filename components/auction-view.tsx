@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { Gavel, Zap, Crown, Timer, CircleDollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,34 +11,33 @@ import type { CursoData, SubastaState } from "@/lib/xp-types"
 interface AuctionSetupProps {
   subasta: SubastaState
   onUpdateSubasta: (updates: Partial<SubastaState>) => void
-  onStart: (e: React.FormEvent) => void
+  onStart: (e: React.FormEvent<HTMLFormElement>) => void
 }
 
 export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetupProps) {
   return (
     <Card className="mx-auto max-w-lg border-border bg-card">
 
-      <CardHeader className="">
-        <div className="flex items-center gap-3">
+      <CardHeader className="flex flex-row items-center gap-3">
 
-          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-            <Gavel className="size-5 text-primary" />
-          </div>
-
-          <div>
-            <CardTitle className="text-foreground">
-              Panel de Subastas
-            </CardTitle>
-
-            <CardDescription className="">
-              Configura y lanza una subasta en vivo
-            </CardDescription>
-          </div>
-
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+          <Gavel className="size-5 text-primary" />
         </div>
+
+        <div>
+          <CardTitle className="text-foreground">
+            Panel de Subastas
+          </CardTitle>
+
+          <CardDescription className="text-muted-foreground">
+            Configura y lanza una subasta en vivo
+          </CardDescription>
+        </div>
+
       </CardHeader>
 
-      <CardContent className="">
+      <CardContent className="space-y-4">
+
         <form onSubmit={onStart} className="space-y-4">
 
           <div className="space-y-2">
@@ -46,9 +46,12 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
             </label>
 
             <Input
+              type="text"
               placeholder="Ej: Punto extra, Tarea libre..."
               value={subasta.item}
-              onChange={(e) => onUpdateSubasta({ item: e.target.value })}
+              onChange={(e) =>
+                onUpdateSubasta({ item: e.target.value })
+              }
               className="bg-input text-foreground placeholder:text-muted-foreground"
             />
           </div>
@@ -63,7 +66,9 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
               min={1}
               value={subasta.incremento}
               onChange={(e) =>
-                onUpdateSubasta({ incremento: parseInt(e.target.value) || 10 })
+                onUpdateSubasta({
+                  incremento: parseInt(e.target.value) || 10,
+                })
               }
               className="bg-input text-foreground"
             />
@@ -78,6 +83,7 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
           </Button>
 
         </form>
+
       </CardContent>
 
     </Card>
@@ -112,18 +118,14 @@ export function AuctionLive({
     <div className="space-y-6">
 
       <div
-        className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center transition-all duration-300 md:p-10 ${
+        className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center md:p-10 ${
           isUrgent
-            ? "animate-pulse border-destructive bg-destructive/5"
+            ? "border-destructive bg-destructive/5"
             : "border-primary bg-primary/5"
         }`}
       >
 
-        {!isSold && (
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
-        )}
-
-        <div className="relative z-10">
+        <div>
 
           <div className="mb-2 flex items-center justify-center gap-2">
             <Timer
@@ -138,21 +140,12 @@ export function AuctionLive({
           </div>
 
           <p
-            className={`font-mono text-6xl font-black tracking-tighter md:text-8xl ${
+            className={`font-mono text-6xl font-black md:text-8xl ${
               isUrgent ? "text-destructive" : "text-foreground"
             }`}
           >
             {isSold ? "VENDIDO" : `00:${timeLeft < 10 ? `0${timeLeft}` : timeLeft}`}
           </p>
-
-          <div className="mx-auto mt-4 h-2 max-w-xs overflow-hidden rounded-full bg-secondary">
-            <div
-              className={`h-full rounded-full transition-all duration-1000 ${
-                isUrgent ? "bg-destructive" : "bg-primary"
-              }`}
-              style={{ width: `${(timeLeft / 30) * 100}%` }}
-            />
-          </div>
 
           <p className="mt-4 text-lg text-muted-foreground">
             {subasta.item}
@@ -183,6 +176,7 @@ export function AuctionLive({
           </div>
 
         </div>
+
       </div>
 
       {!isSold && (
@@ -190,8 +184,11 @@ export function AuctionLive({
 
           {cursoData.alumnos.map((al, i) => {
 
-            const canAfford = al.xp >= subasta.pujaActual + subasta.incremento
-            const isLeader = subasta.ganadorIdx === i
+            const canAfford =
+              al.xp >= subasta.pujaActual + subasta.incremento
+
+            const isLeader =
+              subasta.ganadorIdx === i
 
             return (
               <Button
@@ -199,11 +196,11 @@ export function AuctionLive({
                 onClick={() => onBid(i)}
                 disabled={!canAfford}
                 variant="ghost"
-                className={`flex h-auto flex-col gap-1 rounded-xl border p-4 transition-all ${
+                className={`flex h-auto flex-col gap-1 rounded-xl border p-4 ${
                   isLeader
-                    ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
+                    ? "border-primary bg-primary/10 text-primary"
                     : canAfford
-                    ? "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5"
+                    ? "border-border bg-card text-foreground"
                     : "border-border bg-card/50 text-muted-foreground opacity-50"
                 }`}
               >
@@ -212,13 +209,7 @@ export function AuctionLive({
                   {al.nombre}
                 </span>
 
-                <Badge
-                  className={`text-xs ${
-                    isLeader
-                      ? "bg-primary/20 text-primary border-primary/30"
-                      : "bg-secondary text-muted-foreground border-border"
-                  }`}
-                >
+                <Badge className="text-xs">
                   {al.xp} XP
                 </Badge>
 
