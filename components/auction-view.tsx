@@ -1,45 +1,51 @@
 "use client"
 
-import React from "react"
 import { Gavel, Zap, Crown, Timer, CircleDollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { CursoData, SubastaState } from "@/lib/xp-types"
 
 interface AuctionSetupProps {
   subasta: SubastaState
   onUpdateSubasta: (updates: Partial<SubastaState>) => void
-  onStart: (e: React.FormEvent<HTMLFormElement>) => void
+  onStart: (e: React.FormEvent) => void
 }
 
-export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetupProps) {
+export function AuctionSetup({
+  subasta,
+  onUpdateSubasta,
+  onStart,
+}: AuctionSetupProps) {
   return (
     <Card className="mx-auto max-w-lg border-border bg-card">
+      <CardHeader className="space-y-0">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+            <Gavel className="size-5 text-primary" />
+          </div>
 
-      <CardHeader className="flex flex-row items-center gap-3">
+          <div>
+            <CardTitle className="text-foreground">
+              Panel de Subastas
+            </CardTitle>
 
-        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-          <Gavel className="size-5 text-primary" />
+            <CardDescription className="text-muted-foreground">
+              Configura y lanza una subasta en vivo
+            </CardDescription>
+          </div>
         </div>
-
-        <div>
-          <CardTitle className="text-foreground">
-            Panel de Subastas
-          </CardTitle>
-
-          <CardDescription className="text-muted-foreground">
-            Configura y lanza una subasta en vivo
-          </CardDescription>
-        </div>
-
       </CardHeader>
 
       <CardContent className="space-y-4">
-
         <form onSubmit={onStart} className="space-y-4">
-
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               Premio
@@ -48,11 +54,11 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
             <Input
               type="text"
               placeholder="Ej: Punto extra, Tarea libre..."
-              value={subasta.item}
+              value={subasta.premio}
               onChange={(e) =>
-                onUpdateSubasta({ item: e.target.value })
+                onUpdateSubasta({ premio: e.target.value })
               }
-              className="bg-input text-foreground placeholder:text-muted-foreground"
+              className="bg-input text-foreground"
             />
           </div>
 
@@ -81,11 +87,8 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
             <Zap className="mr-2 size-5" />
             COMENZAR SUBASTA
           </Button>
-
         </form>
-
       </CardContent>
-
     </Card>
   )
 }
@@ -105,7 +108,6 @@ export function AuctionLive({
   onBid,
   onFinish,
 }: AuctionLiveProps) {
-
   const isUrgent = timeLeft <= 5
   const isSold = timeLeft === 0
 
@@ -116,7 +118,6 @@ export function AuctionLive({
 
   return (
     <div className="space-y-6">
-
       <div
         className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center md:p-10 ${
           isUrgent
@@ -124,31 +125,37 @@ export function AuctionLive({
             : "border-primary bg-primary/5"
         }`}
       >
-
-        <div>
-
+        <div className="relative z-10">
           <div className="mb-2 flex items-center justify-center gap-2">
             <Timer
               className={`size-5 ${
-                isUrgent ? "text-destructive" : "text-muted-foreground"
+                isUrgent
+                  ? "text-destructive"
+                  : "text-muted-foreground"
               }`}
             />
 
             <span className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              {isSold ? "Subasta Finalizada" : "Tiempo Restante"}
+              {isSold
+                ? "Subasta Finalizada"
+                : "Tiempo Restante"}
             </span>
           </div>
 
           <p
             className={`font-mono text-6xl font-black md:text-8xl ${
-              isUrgent ? "text-destructive" : "text-foreground"
+              isUrgent
+                ? "text-destructive"
+                : "text-foreground"
             }`}
           >
-            {isSold ? "VENDIDO" : `00:${timeLeft < 10 ? `0${timeLeft}` : timeLeft}`}
+            {isSold
+              ? "VENDIDO"
+              : `00:${timeLeft < 10 ? `0${timeLeft}` : timeLeft}`}
           </p>
 
           <p className="mt-4 text-lg text-muted-foreground">
-            {subasta.item}
+            {subasta.premio}
           </p>
 
           <div className="mt-6 flex items-center justify-center gap-3">
@@ -174,21 +181,16 @@ export function AuctionLive({
               {ganadorName || "Nadie"}
             </span>
           </div>
-
         </div>
-
       </div>
 
       {!isSold && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-
           {cursoData.alumnos.map((al, i) => {
-
             const canAfford =
               al.xp >= subasta.pujaActual + subasta.incremento
 
-            const isLeader =
-              subasta.ganadorIdx === i
+            const isLeader = subasta.ganadorIdx === i
 
             return (
               <Button
@@ -200,16 +202,21 @@ export function AuctionLive({
                   isLeader
                     ? "border-primary bg-primary/10 text-primary"
                     : canAfford
-                    ? "border-border bg-card text-foreground"
+                    ? "border-border bg-card text-foreground hover:bg-primary/5"
                     : "border-border bg-card/50 text-muted-foreground opacity-50"
                 }`}
               >
-
                 <span className="text-sm font-bold truncate max-w-full">
                   {al.nombre}
                 </span>
 
-                <Badge className="text-xs">
+                <Badge
+                  className={`text-xs ${
+                    isLeader
+                      ? "bg-primary/20 text-primary"
+                      : "bg-secondary text-muted-foreground"
+                  }`}
+                >
                   {al.xp} XP
                 </Badge>
 
@@ -218,11 +225,9 @@ export function AuctionLive({
                     +{subasta.incremento}
                   </span>
                 )}
-
               </Button>
             )
           })}
-
         </div>
       )}
 
@@ -235,7 +240,6 @@ export function AuctionLive({
           COBRAR Y CERRAR
         </Button>
       )}
-
     </div>
   )
 }
