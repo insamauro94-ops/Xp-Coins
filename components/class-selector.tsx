@@ -15,45 +15,51 @@ import type { CursosState } from "@/lib/xp-types"
 
 interface ClassSelectorProps {
   cursos: CursosState
-  onSelectCurso: (cursoId: string) => void
+  onSelect: (curso: string) => void
 }
 
-export default function ClassSelector({
-  cursos,
-  onSelectCurso,
-}: ClassSelectorProps) {
-  const [busqueda, setBusqueda] = useState("")
-
-  const cursosFiltrados = Object.values(cursos).filter((curso) =>
-    curso.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  )
+export function ClassSelector({ cursos, onSelect }: ClassSelectorProps) {
+  const [nuevoCurso, setNuevoCurso] = useState("")
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Seleccionar Curso</CardTitle>
-        <CardDescription>
-          Elegí el curso para ver los alumnos
+    <Card className="">
+      <CardHeader className="">
+        <CardTitle className="">Seleccionar Curso</CardTitle>
+        <CardDescription className="">
+          Elegí un curso o crea uno nuevo
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <Input
-          placeholder="Buscar curso..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        {Object.keys(cursos).map((curso) => (
+          <Button
+            key={curso}
+            onClick={() => onSelect(curso)}
+            className="w-full"
+          >
+            {curso}
+          </Button>
+        ))}
 
-        <div className="grid gap-2">
-          {cursosFiltrados.map((curso) => (
-            <Button
-              key={curso.id}
-              variant="outline"
-              onClick={() => onSelectCurso(curso.id)}
-            >
-              {curso.nombre}
-            </Button>
-          ))}
+        <div className="flex gap-2">
+          <Input
+            type="text"
+            placeholder="Nuevo curso..."
+            value={nuevoCurso}
+            onChange={(e) => setNuevoCurso(e.target.value)}
+            className=""
+          />
+
+          <Button
+            onClick={() => {
+              if (nuevoCurso.trim()) {
+                onSelect(nuevoCurso.trim())
+                setNuevoCurso("")
+              }
+            }}
+          >
+            Crear
+          </Button>
         </div>
       </CardContent>
     </Card>
