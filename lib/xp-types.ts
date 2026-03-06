@@ -4,6 +4,7 @@ export interface Alumno {
 }
 
 export interface CursoData {
+  nombre: string
   alumnos: Alumno[]
 }
 
@@ -13,3 +14,5 @@ export interface SubastaState {
   pujaActual: number
   ganadorIdx: number | null
 }
+
+export type CursosState = Record<string, CursoData>
