@@ -16,7 +16,7 @@ interface AuctionSetupProps {
 export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetupProps) {
   return (
     <Card className="mx-auto max-w-lg border-border bg-card">
-      <CardHeader className-"">
+      <CardHeader className="">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
             <Gavel className="size-5 text-primary" />
