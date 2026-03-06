@@ -15,4 +15,6 @@ export interface SubastaState {
   ganadorIdx: number | null
 }
 
-export type CursosState = Record<string, CursoData>
+export interface CursosState {
+  [curso: string]: CursoData
+}
