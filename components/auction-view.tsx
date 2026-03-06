@@ -16,8 +16,10 @@ interface AuctionSetupProps {
 export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetupProps) {
   return (
     <Card className="mx-auto max-w-lg border-border bg-card">
+
       <CardHeader className="">
         <div className="flex items-center gap-3">
+
           <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
             <Gavel className="size-5 text-primary" />
           </div>
@@ -27,16 +29,17 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
               Panel de Subastas
             </CardTitle>
 
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="">
               Configura y lanza una subasta en vivo
             </CardDescription>
           </div>
+
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="">
         <form onSubmit={onStart} className="space-y-4">
-          
+
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">
               Premio
@@ -76,6 +79,7 @@ export function AuctionSetup({ subasta, onUpdateSubasta, onStart }: AuctionSetup
 
         </form>
       </CardContent>
+
     </Card>
   )
 }
@@ -88,10 +92,17 @@ interface AuctionLiveProps {
   onFinish: () => void
 }
 
-export function AuctionLive({ subasta, timeLeft, cursoData, onBid, onFinish }: AuctionLiveProps) {
+export function AuctionLive({
+  subasta,
+  timeLeft,
+  cursoData,
+  onBid,
+  onFinish,
+}: AuctionLiveProps) {
 
   const isUrgent = timeLeft <= 5
   const isSold = timeLeft === 0
+
   const ganadorName =
     subasta.ganadorIdx !== null
       ? cursoData.alumnos[subasta.ganadorIdx]?.nombre
@@ -103,13 +114,13 @@ export function AuctionLive({ subasta, timeLeft, cursoData, onBid, onFinish }: A
       <div
         className={`relative overflow-hidden rounded-2xl border-2 p-6 text-center transition-all duration-300 md:p-10 ${
           isUrgent
-            ? "animate-pulse-urgent border-destructive bg-destructive/5"
+            ? "animate-pulse border-destructive bg-destructive/5"
             : "border-primary bg-primary/5"
         }`}
       >
 
         {!isSold && (
-          <div className="animate-shimmer pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" />
         )}
 
         <div className="relative z-10">
@@ -163,23 +174,23 @@ export function AuctionLive({ subasta, timeLeft, cursoData, onBid, onFinish }: A
             <Crown className="size-5 text-primary" />
 
             <span className="text-muted-foreground">
-              Lider:
+              Líder:
             </span>
 
             <span className="font-bold text-primary">
               {ganadorName || "Nadie"}
             </span>
           </div>
+
         </div>
       </div>
 
       {!isSold && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+
           {cursoData.alumnos.map((al, i) => {
 
-            const canAfford =
-              al.xp >= subasta.pujaActual + subasta.incremento
-
+            const canAfford = al.xp >= subasta.pujaActual + subasta.incremento
             const isLeader = subasta.ganadorIdx === i
 
             return (
@@ -187,6 +198,7 @@ export function AuctionLive({ subasta, timeLeft, cursoData, onBid, onFinish }: A
                 key={i}
                 onClick={() => onBid(i)}
                 disabled={!canAfford}
+                variant="ghost"
                 className={`flex h-auto flex-col gap-1 rounded-xl border p-4 transition-all ${
                   isLeader
                     ? "border-primary bg-primary/10 text-primary hover:bg-primary/20"
@@ -194,8 +206,8 @@ export function AuctionLive({ subasta, timeLeft, cursoData, onBid, onFinish }: A
                     ? "border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/5"
                     : "border-border bg-card/50 text-muted-foreground opacity-50"
                 }`}
-                variant="ghost"
               >
+
                 <span className="text-sm font-bold truncate max-w-full">
                   {al.nombre}
                 </span>
@@ -215,9 +227,11 @@ export function AuctionLive({ subasta, timeLeft, cursoData, onBid, onFinish }: A
                     +{subasta.incremento}
                   </span>
                 )}
+
               </Button>
             )
           })}
+
         </div>
       )}
 
