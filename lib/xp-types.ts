@@ -1,26 +1,27 @@
+export interface HistorialEntry {
+  fecha: string
+  mensaje: string
+}
+
 export interface Alumno {
-  id: string
   nombre: string
   xp: number
 }
 
-export interface Curso {
-  nombre: string
+export interface CursoData {
   alumnos: Alumno[]
+  historial: HistorialEntry[]
+  maxSupply: number
 }
 
-export interface HistorialEntry {
-  mensaje: string
-  fecha: string
+export interface CursosState {
+  [curso: string]: CursoData
 }
 
 export interface SubastaState {
-  item: string
   activa: boolean
-  mejorOferta: number
-  ganador: string | null
-}
-
-export type CursosState = {
-  [curso: string]: Curso
+  item: string
+  pujaActual: number
+  ganadorIdx: number | null
+  incremento: number
 }
