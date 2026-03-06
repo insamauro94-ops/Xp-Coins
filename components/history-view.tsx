@@ -1,6 +1,6 @@
 "use client"
 
-import { HistorialEntry } from "@/lib/xp-types"
+import type { HistorialEntry } from "@/lib/xp-types"
 
 interface Props {
   historial: HistorialEntry[]
@@ -8,15 +8,15 @@ interface Props {
 
 export default function HistoryView({ historial }: Props) {
   return (
-    <div style={{ marginTop: 20 }}>
-      <h3>Historial</h3>
+    <div style={{ padding: 20 }}>
+      <h2>Historial</h2>
 
-      {historial.length === 0 && <p>No hay historial</p>}
+      {historial.length === 0 && <p>No hay movimientos todavía</p>}
 
       {historial.map((entry, i) => (
-        <div key={i} style={{ borderBottom: "1px solid #ccc", padding: 5 }}>
+        <div key={i} style={{ marginBottom: 10 }}>
           <div>{entry.mensaje}</div>
-          <small>{entry.fecha}</small>
+          <div style={{ fontSize: 12, color: "gray" }}>{entry.fecha}</div>
         </div>
       ))}
     </div>

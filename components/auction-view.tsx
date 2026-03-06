@@ -1,28 +1,49 @@
 "use client"
 
-import { SubastaState } from "@/lib/xp-types"
+import type { SubastaState } from "@/lib/xp-types"
 
 interface Props {
   subasta: SubastaState
-  onUpdate: (data: Partial<SubastaState>) => void
+  onUpdateSubasta: (data: Partial<SubastaState>) => void
 }
 
-export default function AuctionView({ subasta, onUpdate }: Props) {
+export default function AuctionView({ subasta, onUpdateSubasta }: Props) {
   return (
-    <div style={{ marginTop: 20 }}>
-      <h3>Subasta</h3>
+    <div style={{ padding: 20 }}>
+      <h2>Subasta</h2>
 
       <input
-        placeholder="Premio"
-        value={subasta.premio}
-        onChange={(e) => onUpdate({ premio: e.target.value })}
+        type="text"
+        placeholder="Premio de la subasta"
+        value={subasta.item}
+        onChange={(e) =>
+          onUpdateSubasta({
+            item: e.target.value,
+          })
+        }
       />
 
-      <div>Puja actual: {subasta.pujaActual}</div>
+      <div style={{ marginTop: 20 }}>
+        <button
+          onClick={() =>
+            onUpdateSubasta({
+              activa: true,
+            })
+          }
+        >
+          Iniciar subasta
+        </button>
 
-      <button onClick={() => onUpdate({ pujaActual: subasta.pujaActual + subasta.incremento })}>
-        Subir Puja
-      </button>
+        <button
+          onClick={() =>
+            onUpdateSubasta({
+              activa: false,
+            })
+          }
+        >
+          Finalizar subasta
+        </button>
+      </div>
     </div>
   )
 }
