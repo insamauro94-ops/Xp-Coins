@@ -7,14 +7,14 @@ import StudentList from "@/components/student-list"
 import HistoryView from "@/components/history-view"
 import AuctionView from "@/components/auction-view"
 
-import { Alumno, HistorialEntry, SubastaState } from "@/lib/xp-types"
+import { Alumno, HistorialEntry, SubastaState } from "@/types/xp-types"
 
 export default function Page() {
   const [curso, setCurso] = useState<string | null>(null)
 
   const [alumnos, setAlumnos] = useState<Alumno[]>([
-    { id: "1", nombre: "Juan", xp: 0 },
-    { id: "2", nombre: "Maria", xp: 0 },
+    { nombre: "Juan", xp: 0 },
+    { nombre: "Maria", xp: 0 },
   ])
 
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
@@ -24,25 +24,29 @@ export default function Page() {
     pujaActual: 0,
     incremento: 1,
     ganadorIdx: null,
+    activa: false
   })
 
-  function addXP(id: string) {
+  function addXP(index: number) {
     setAlumnos((prev) =>
-      prev.map((a) =>
-        a.id === id ? { ...a, xp: a.xp + 1 } : a
+      prev.map((a, i) =>
+        i === index ? { ...a, xp: a.xp + 1 } : a
       )
     )
 
     setHistorial((h) => [
-      { mensaje: "Se agregó XP", fecha: new Date().toLocaleString() },
+      {
+        mensaje: "Se agregó XP",
+        fecha: new Date().toLocaleString(),
+      },
       ...h,
     ])
   }
 
-  function removeXP(id: string) {
+  function removeXP(index: number) {
     setAlumnos((prev) =>
-      prev.map((a) =>
-        a.id === id ? { ...a, xp: a.xp - 1 } : a
+      prev.map((a, i) =>
+        i === index ? { ...a, xp: a.xp - 1 } : a
       )
     )
   }
@@ -63,7 +67,7 @@ export default function Page() {
 
       <AuctionView
         subasta={subasta}
-        onUpdate={(data) =>
+        onUpdateSubasta={(data) =>
           setSubasta((s) => ({ ...s, ...data }))
         }
       />
