@@ -1,11 +1,9 @@
+export type Curso = string
+
 export interface Alumno {
+  id: string
   nombre: string
   xp: number
-}
-
-export interface Curso {
-  nombre: string
-  alumnos: Alumno[]
 }
 
 export interface HistorialEntry {
@@ -18,5 +16,5 @@ export interface SubastaState {
   pujaActual: number
   incremento: number
   ganadorIdx: number | null
-  activa: boolean
+  activa?: boolean
 }

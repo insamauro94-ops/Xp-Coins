@@ -7,14 +7,15 @@ import StudentList from "@/components/student-list"
 import HistoryView from "@/components/history-view"
 import AuctionView from "@/components/auction-view"
 
-import { Alumno, HistorialEntry, SubastaState } from "@/types/xp-types"
+import { Alumno, HistorialEntry, SubastaState, Curso } from "@/types/xp-types"
 
 export default function Page() {
-  const [curso, setCurso] = useState<string | null>(null)
+
+  const [curso, setCurso] = useState<Curso | null>(null)
 
   const [alumnos, setAlumnos] = useState<Alumno[]>([
-    { nombre: "Juan", xp: 0 },
-    { nombre: "Maria", xp: 0 },
+    { id: "1", nombre: "Juan", xp: 0 },
+    { id: "2", nombre: "Maria", xp: 0 },
   ])
 
   const [historial, setHistorial] = useState<HistorialEntry[]>([])
@@ -27,32 +28,34 @@ export default function Page() {
     activa: false
   })
 
-  function addXP(index: number) {
+  function addXP(id: string) {
     setAlumnos((prev) =>
-      prev.map((a, i) =>
-        i === index ? { ...a, xp: a.xp + 1 } : a
+      prev.map((a) =>
+        a.id === id ? { ...a, xp: a.xp + 1 } : a
       )
     )
 
     setHistorial((h) => [
-      {
-        mensaje: "Se agregó XP",
-        fecha: new Date().toLocaleString(),
-      },
+      { mensaje: "Se agregó XP", fecha: new Date().toLocaleString() },
       ...h,
     ])
   }
 
-  function removeXP(index: number) {
+  function removeXP(id: string) {
     setAlumnos((prev) =>
-      prev.map((a, i) =>
-        i === index ? { ...a, xp: a.xp - 1 } : a
+      prev.map((a) =>
+        a.id === id ? { ...a, xp: a.xp - 1 } : a
       )
     )
   }
 
   if (!curso) {
-    return <ClassSelector cursos={["1A", "2A"]} onSelect={setCurso} />
+    return (
+      <ClassSelector
+        cursos={["1A", "2A"]}
+        onSelect={setCurso}
+      />
+    )
   }
 
   return (
@@ -67,7 +70,7 @@ export default function Page() {
 
       <AuctionView
         subasta={subasta}
-        onUpdateSubasta={(data) =>
+        onUpdate={(data) =>
           setSubasta((s) => ({ ...s, ...data }))
         }
       />
