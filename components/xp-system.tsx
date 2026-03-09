@@ -184,7 +184,7 @@ export function XPSystem() {
 
         alumnos: [],
         historial: [],
-        id: data?.[0]?.id
+        id: data?.[0]?.id,
 	maxSupply:1000000
 
       }
