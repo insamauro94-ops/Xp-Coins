@@ -10,6 +10,7 @@ import { RankingView } from "@/components/ranking-view"
 import { AuctionSetup, AuctionLive } from "@/components/auction-view"
 import { HistoryView } from "@/components/history-view"
 import type { CursosState, SubastaState } from "@/lib/xp-types"
+import { supabase } from "@/lib/supabaseClient"
 
 const STORAGE_KEY = "xp_system_vFinal_Pro"
 const APP_NAME_KEY = "xp_system_app_name"
@@ -29,9 +30,7 @@ export function XPSystem() {
   const [editingName, setEditingName] = useState(false)
   const [nameInput, setNameInput] = useState(DEFAULT_APP_NAME)
   const nameInputRef = useRef<HTMLInputElement>(null)
-  const [confetti, setConfetti] = useState<Array<{
-    id: number; x: number; color: string; delay: number; size: number
-  }>>([])
+  const [confetti, setConfetti] = useState<any[]>([])
 
   const [subasta, setSubasta] = useState<SubastaState>({
     activa: false,
@@ -40,10 +39,10 @@ export function XPSystem() {
     ganadorIdx: null,
     incremento: 10,
   })
+
   const [timeLeft, setTimeLeft] = useState(30)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Load from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY)
@@ -53,13 +52,10 @@ export function XPSystem() {
         setAppName(savedName)
         setNameInput(savedName)
       }
-    } catch {
-      // ignore parse errors
-    }
+    } catch {}
     setMounted(true)
   }, [])
 
-  // Focus input when editing name
   useEffect(() => {
     if (editingName && nameInputRef.current) {
       nameInputRef.current.focus()
@@ -67,15 +63,14 @@ export function XPSystem() {
     }
   }, [editingName])
 
-  // Save to localStorage on change
   useEffect(() => {
     if (mounted) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cursos))
     }
   }, [cursos, mounted])
 
-  // Save when the user leaves the page (close tab, navigate away, switch tabs, minimize)
   const cursosRef = useRef(cursos)
+
   useEffect(() => {
     cursosRef.current = cursos
   }, [cursos])
@@ -84,37 +79,22 @@ export function XPSystem() {
     const saveState = () => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cursosRef.current))
-      } catch {
-        // ignore storage errors
-      }
+      } catch {}
     }
 
-    const handleBeforeUnload = () => {
-      saveState()
-    }
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        saveState()
-      }
-    }
-
-    const handlePageHide = () => {
-      saveState()
-    }
-
-    window.addEventListener("beforeunload", handleBeforeUnload)
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    window.addEventListener("pagehide", handlePageHide)
+    window.addEventListener("beforeunload", saveState)
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") saveState()
+    })
+    window.addEventListener("pagehide", saveState)
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload)
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-      window.removeEventListener("pagehide", handlePageHide)
+      window.removeEventListener("beforeunload", saveState)
+      document.removeEventListener("visibilitychange", saveState)
+      window.removeEventListener("pagehide", saveState)
     }
   }, [])
 
-  // Auction timer
   useEffect(() => {
     if (subasta.activa && timeLeft > 0) {
       timerRef.current = setInterval(() => setTimeLeft((prev) => prev - 1), 1000)
@@ -122,10 +102,10 @@ export function XPSystem() {
       if (timerRef.current) clearInterval(timerRef.current)
       launchConfetti()
     }
+
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subasta.activa, timeLeft])
 
   const handleSaveName = useCallback(() => {
@@ -154,10 +134,16 @@ export function XPSystem() {
   const registrarLog = useCallback(
     (msg: string) => {
       if (!cursoActivo) return
+
       setCursos((prev) => {
         const data = { ...prev[cursoActivo] }
         const historial = [...(data.historial || [])]
-        historial.unshift({ fecha: new Date().toLocaleTimeString(), mensaje: msg })
+
+        historial.unshift({
+          fecha: new Date().toLocaleTimeString(),
+          mensaje: msg,
+        })
+
         return { ...prev, [cursoActivo]: { ...data, historial } }
       })
     },
@@ -166,6 +152,7 @@ export function XPSystem() {
 
   const handleCreateClass = (nombre: string) => {
     if (cursos[nombre]) return
+
     setCursos((prev) => ({
       ...prev,
       [nombre]: { alumnos: [], historial: [], maxSupply: 1000 },
@@ -182,50 +169,76 @@ export function XPSystem() {
 
   const handleAddAlumno = (nombre: string) => {
     if (!cursoActivo) return
+
     setCursos((prev) => {
       const data = { ...prev[cursoActivo] }
       data.alumnos = [...data.alumnos, { nombre, xp: 0 }]
       return { ...prev, [cursoActivo]: data }
     })
+
     registrarLog(`Nuevo alumno: ${nombre}`)
   }
 
   const handleRemoveAlumno = (idx: number) => {
     if (!cursoActivo) return
+
     const alumnoName = cursos[cursoActivo].alumnos[idx]?.nombre
+
     setCursos((prev) => {
       const data = { ...prev[cursoActivo] }
       data.alumnos = data.alumnos.filter((_, i) => i !== idx)
       return { ...prev, [cursoActivo]: data }
     })
+
     if (alumnoName) registrarLog(`Alumno eliminado: ${alumnoName}`)
   }
 
   const handleModifyXP = (idx: number, value: number) => {
     if (!cursoActivo) return
+
     setCursos((prev) => {
       const data = { ...prev[cursoActivo] }
       const alumnos = [...data.alumnos]
-      alumnos[idx] = { ...alumnos[idx], xp: Math.max(0, alumnos[idx].xp + value) }
+
+      alumnos[idx] = {
+        ...alumnos[idx],
+        xp: Math.max(0, alumnos[idx].xp + value),
+      }
+
       return { ...prev, [cursoActivo]: { ...data, alumnos } }
     })
   }
 
   const handleStartSubasta = (e: React.FormEvent) => {
     e.preventDefault()
+
     if (!subasta.item.trim()) return
+
     setTimeLeft(30)
-    setSubasta({ ...subasta, activa: true, pujaActual: 0, ganadorIdx: null })
-    registrarLog(`SUBASTA INICIADA: ${subasta.item} (Incrementos de ${subasta.incremento} XP)`)
+
+    setSubasta({
+      ...subasta,
+      activa: true,
+      pujaActual: 0,
+      ganadorIdx: null,
+    })
+
+    registrarLog(`SUBASTA INICIADA: ${subasta.item}`)
   }
 
   const handleBid = (alumnoIdx: number) => {
     if (timeLeft <= 0 || !cursoActivo) return
+
     const alumno = cursos[cursoActivo].alumnos[alumnoIdx]
     const nuevaPuja = subasta.pujaActual + subasta.incremento
 
     if (alumno.xp >= nuevaPuja) {
-      setSubasta({ ...subasta, pujaActual: nuevaPuja, ganadorIdx: alumnoIdx })
+      setSubasta({
+        ...subasta,
+        pujaActual: nuevaPuja,
+        ganadorIdx: alumnoIdx,
+      })
+
       setTimeLeft((prev) => Math.min(prev + 5, 30))
     }
   }
@@ -233,20 +246,26 @@ export function XPSystem() {
   const handleFinishSubasta = () => {
     if (subasta.ganadorIdx !== null && cursoActivo) {
       const ganador = cursos[cursoActivo].alumnos[subasta.ganadorIdx]
+
       setCursos((prev) => {
         const data = { ...prev[cursoActivo] }
         const alumnos = [...data.alumnos]
+
         alumnos[subasta.ganadorIdx!] = {
           ...alumnos[subasta.ganadorIdx!],
           xp: alumnos[subasta.ganadorIdx!].xp - subasta.pujaActual,
         }
+
         return { ...prev, [cursoActivo]: { ...data, alumnos } }
       })
+
       registrarLog(
-        `VENTA CERRADA: ${ganador.nombre} gano "${subasta.item}" por ${subasta.pujaActual} XP`
+        `VENTA: ${ganador.nombre} gano "${subasta.item}" por ${subasta.pujaActual} XP`
       )
+
       launchConfetti()
     }
+
     setSubasta((prev) => ({ ...prev, activa: false }))
   }
 
@@ -262,93 +281,49 @@ export function XPSystem() {
     <div className="relative min-h-screen bg-background">
       <Confetti particles={confetti} />
 
-      {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-4xl items-center gap-4 px-4">
+
           {cursoActivo && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => {
-                setCursoActivo(null)
-                setSubasta((prev) => ({ ...prev, activa: false }))
-              }}
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Volver al menu"
+              onClick={() => setCursoActivo(null)}
             >
               <ArrowLeft className="size-5" />
             </Button>
           )}
+
           <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/15">
-              <Coins className="size-5 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              {editingName ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    handleSaveName()
-                  }}
-                  className="flex items-center gap-1.5"
-                >
-                  <input
-                    ref={nameInputRef}
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    onBlur={handleSaveName}
-                    onKeyDown={(e) => {
-                      if (e.key === "Escape") {
-                        setNameInput(appName)
-                        setEditingName(false)
-                      }
-                    }}
-                    className="h-7 rounded-md border border-primary/40 bg-input px-2 text-lg font-bold text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                    maxLength={30}
-                  />
-                  <Button
-                    type="submit"
-                    variant="ghost"
-                    size="icon"
-                    className="size-7 text-primary hover:text-primary"
-                  >
-                    <Check className="size-4" />
-                    <span className="sr-only">Guardar nombre</span>
-                  </Button>
-                </form>
-              ) : (
-                <button
-                  onClick={() => {
-                    setNameInput(appName)
-                    setEditingName(true)
-                  }}
-                  className="group flex items-center gap-1.5"
-                  aria-label="Editar nombre de la aplicacion"
-                >
-                  <h1 className="truncate text-lg font-bold text-foreground leading-tight">
-                    {appName}
-                  </h1>
-                  <Pencil className="size-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-                </button>
-              )}
-              {cursoActivo && (
-                <p className="text-xs text-muted-foreground">{cursoActivo}</p>
-              )}
-            </div>
+            <Coins className="size-5 text-primary" />
+            <h1 className="font-bold">{appName}</h1>
           </div>
 
-          {cursoActivo && (
-            <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
+
+            {cursoActivo && (
               <span className="text-xs text-muted-foreground font-mono">
                 {cursos[cursoActivo]?.alumnos.reduce((sum, a) => sum + a.xp, 0)} XP total
               </span>
-            </div>
-          )}
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await supabase.auth.signOut()
+                window.location.href = "/login"
+              }}
+            >
+              Cerrar sesión
+            </Button>
+
+          </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="mx-auto max-w-4xl px-4 py-6">
+
         {!cursoActivo ? (
           <ClassSelector
             cursos={cursos}
@@ -358,20 +333,12 @@ export function XPSystem() {
             onDeleteClass={handleDeleteClass}
           />
         ) : (
-          <Tabs defaultValue="ranking" className="space-y-6">
-            <TabsList className="bg-secondary w-full grid grid-cols-3">
-              <TabsTrigger value="ranking" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Trophy className="size-4" />
-                <span className="hidden sm:inline">Ranking</span>
-              </TabsTrigger>
-              <TabsTrigger value="subasta" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <Gavel className="size-4" />
-                <span className="hidden sm:inline">Subasta</span>
-              </TabsTrigger>
-              <TabsTrigger value="historial" className="gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                <ScrollText className="size-4" />
-                <span className="hidden sm:inline">Historial</span>
-              </TabsTrigger>
+          <Tabs defaultValue="ranking">
+
+            <TabsList className="grid grid-cols-3">
+              <TabsTrigger value="ranking">Ranking</TabsTrigger>
+              <TabsTrigger value="subasta">Subasta</TabsTrigger>
+              <TabsTrigger value="historial">Historial</TabsTrigger>
             </TabsList>
 
             <TabsContent value="ranking">
@@ -407,8 +374,10 @@ export function XPSystem() {
             <TabsContent value="historial">
               <HistoryView historial={cursos[cursoActivo]?.historial || []} />
             </TabsContent>
+
           </Tabs>
         )}
+
       </main>
     </div>
   )
