@@ -4,11 +4,13 @@ export interface HistorialEntry {
 }
 
 export interface Alumno {
+  id: string
   nombre: string
   xp: number
 }
 
 export interface CursoData {
+  id: string
   alumnos: Alumno[]
   historial: HistorialEntry[]
   maxSupply: number
