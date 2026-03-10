@@ -29,9 +29,19 @@ function getRankBg(rank: number) {
   return "bg-card border-border"
 }
 
-export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onRemoveAlumno }: RankingViewProps) {
+export function RankingView({
+  cursoData,
+  cursoName,
+  onModifyXP,
+  onAddAlumno,
+  onRemoveAlumno,
+}: RankingViewProps) {
+
   const [nuevoAlumno, setNuevoAlumno] = useState("")
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
+
+  // NUEVO: valor de XP configurable
+  const [xpValue, setXpValue] = useState(5)
 
   const handleCopyLink = (alumnoName: string, originalIdx: number) => {
     const url = `${window.location.origin}/alumno/${encodeURIComponent(cursoName)}/${encodeURIComponent(alumnoName)}`
@@ -54,6 +64,8 @@ export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onR
 
   return (
     <div className="space-y-4">
+
+      {/* AGREGAR ALUMNO */}
       <form onSubmit={handleSubmit} className="flex gap-3">
         <Input
           placeholder="Nombre del alumno..."
@@ -67,33 +79,56 @@ export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onR
         </Button>
       </form>
 
+      {/* SELECTOR DE XP */}
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">XP:</span>
+        <Input
+          type="number"
+          value={xpValue}
+          onChange={(e) => setXpValue(Number(e.target.value))}
+          className="w-24"
+        />
+      </div>
+
       {sortedAlumnos.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card/50 p-10 text-center">
           <Trophy className="mx-auto mb-3 size-10 text-muted-foreground/40" />
-          <p className="text-muted-foreground">No hay alumnos todavia</p>
+          <p className="text-muted-foreground">No hay alumnos todavía</p>
           <p className="text-sm text-muted-foreground/60">Agrega alumnos para comenzar</p>
         </div>
       ) : (
+
         <div className="space-y-2">
+
           {sortedAlumnos.map((al, rank) => (
+
             <div
               key={al.originalIdx}
               className={`animate-count-up flex items-center gap-4 rounded-xl border p-4 transition-all ${getRankBg(rank)}`}
             >
+
               <div className="flex size-10 items-center justify-center rounded-lg bg-secondary text-foreground">
                 {getRankIcon(rank) || (
-                  <span className="text-sm font-bold text-muted-foreground">#{rank + 1}</span>
+                  <span className="text-sm font-bold text-muted-foreground">
+                    #{rank + 1}
+                  </span>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate">{al.nombre}</p>
+                <p className="font-semibold text-foreground truncate">
+                  {al.nombre}
+                </p>
+
                 <div className="mt-1 flex items-center gap-2">
                   <div className="h-1.5 flex-1 max-w-32 rounded-full bg-secondary">
                     <div
                       className="h-full rounded-full bg-primary transition-all duration-500"
                       style={{
-                        width: `${Math.min(100, (al.xp / Math.max(1, sortedAlumnos[0]?.xp || 1)) * 100)}%`,
+                        width: `${Math.min(
+                          100,
+                          (al.xp / Math.max(1, sortedAlumnos[0]?.xp || 1)) * 100
+                        )}%`,
                       }}
                     />
                   </div>
@@ -104,25 +139,27 @@ export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onR
                 {al.xp} XP
               </Badge>
 
+              {/* CONTROLES */}
               <div className="flex items-center gap-1">
+
                 <Button
                   variant="ghost"
                   size="icon"
                   className="size-8 text-accent hover:bg-accent/15 hover:text-accent"
-                  onClick={() => onModifyXP(al.originalIdx, 5)}
-                  aria-label={`Agregar 5 XP a ${al.nombre}`}
+                  onClick={() => onModifyXP(al.originalIdx, xpValue)}
                 >
                   <ChevronUp className="size-4" />
                 </Button>
+
                 <Button
                   variant="ghost"
                   size="icon"
                   className="size-8 text-destructive hover:bg-destructive/15 hover:text-destructive"
-                  onClick={() => onModifyXP(al.originalIdx, -5)}
-                  aria-label={`Quitar 5 XP a ${al.nombre}`}
+                  onClick={() => onModifyXP(al.originalIdx, -xpValue)}
                 >
                   <ChevronDown className="size-4" />
                 </Button>
+
                 <Button
                   variant="ghost"
                   size="icon"
@@ -132,7 +169,6 @@ export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onR
                       : "text-muted-foreground hover:bg-primary/15 hover:text-primary"
                   }`}
                   onClick={() => handleCopyLink(al.nombre, al.originalIdx)}
-                  aria-label={`Copiar link de ${al.nombre}`}
                 >
                   {copiedIdx === al.originalIdx ? (
                     <Check className="size-3.5" />
@@ -140,6 +176,7 @@ export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onR
                     <Link2 className="size-3.5" />
                   )}
                 </Button>
+
                 <Button
                   variant="ghost"
                   size="icon"
@@ -149,14 +186,18 @@ export function RankingView({ cursoData, cursoName, onModifyXP, onAddAlumno, onR
                       onRemoveAlumno(al.originalIdx)
                     }
                   }}
-                  aria-label={`Eliminar a ${al.nombre}`}
                 >
                   <Trash2 className="size-3.5" />
                 </Button>
+
               </div>
+
             </div>
+
           ))}
+
         </div>
+
       )}
     </div>
   )
