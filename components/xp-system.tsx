@@ -57,6 +57,34 @@ export function XPSystem() {
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
+useEffect(() => {
+
+  if (!subasta.activa) return
+
+  timerRef.current = setInterval(() => {
+
+    setTimeLeft(prev => {
+
+      if (prev <= 1) {
+
+        if (timerRef.current) clearInterval(timerRef.current)
+
+        return 0
+
+      }
+
+      return prev - 1
+
+    })
+
+  }, 1000)
+
+  return () => {
+    if (timerRef.current) clearInterval(timerRef.current)
+  }
+
+}, [subasta.activa])
+
   // Cargar datos desde Supabase
 
   useEffect(() => {
